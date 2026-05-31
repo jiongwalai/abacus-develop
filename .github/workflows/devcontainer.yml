@@ -11,8 +11,8 @@ on:
 
 jobs:
   build_container_and_push:
-    runs-on: X64
-    if: github.repository_owner == 'deepmodeling'
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'jiongwalai'
     strategy:
       matrix:
         dockerfile: ["gnu","intel","cuda"]
@@ -31,8 +31,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            ghcr.io/deepmodeling/abacus-${{ matrix.dockerfile }}
-            dp-harbor-registry.us-east-1.cr.aliyuncs.com/deepmodeling/abacus-${{ matrix.dockerfile }}
+            ghcr.io/jiongwalai/abacus-${{ matrix.dockerfile }}
+            crpi-bu8qy80a1odt892i.cn-guangzhou.personal.cr.aliyuncs.com/laijiongwa/abacus-${{ matrix.dockerfile }}
           tags: |
             type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
             type=raw,value=latest
@@ -52,13 +52,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Aliyun Registry
+      - name: Login to Aliyun ACR
         uses: docker/login-action@v4
         with:
-          registry: dp-harbor-registry.us-east-1.cr.aliyuncs.com
-            # AliCloud automatically mirrors to registry.dp.tech
-          username: ${{ secrets.DP_HARBOR_USERNAME }}
-          password: ${{ secrets.DP_HARBOR_PASSWORD }}
+          registry: crpi-bu8qy80a1odt892i.cn-guangzhou.personal.cr.aliyuncs.com
+          username: ${{ secrets.ALICLOUD_ACR_USERNAME }}
+          password: ${{ secrets.ALICLOUD_ACR_PASSWORD }}
 
       - name: Build and Push Container
         uses: docker/build-push-action@v7
@@ -67,5 +66,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           file: Dockerfile.${{ matrix.dockerfile }}
           push: true
-          cache-from: type=registry,ref=ghcr.io/deepmodeling/abacus-${{ matrix.dockerfile }}:latest
+          cache-from: type=registry,ref=ghcr.io/jiongwalai/abacus-${{ matrix.dockerfile }}:latest
           cache-to: type=inline
