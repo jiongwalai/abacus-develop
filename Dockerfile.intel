@@ -1,9 +1,10 @@
 FROM ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
-    bc cmake git gnupg gcc g++ python3-numpy sudo wget vim unzip \
+    python3-pip bc cmake git gnupg gcc g++ python3-numpy sudo wget vim unzip \
     libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev \
-    pkg-config build-essential autoconf automake libtool
+    pkg-config build-essential autoconf automake libtool && \
+    rm -rf /var/lib/apt/lists/*
 
 # Following steps by https://software.intel.com/content/www/us/en/develop/documentation/installation-guide-for-intel-oneapi-toolkits-linux/top/installation/install-using-package-managers/apt.html .
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
@@ -210,4 +211,8 @@ RUN cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --de
     # cd abacus-develop-3.9.0.17 && \
     # sed -i '3i\#include "source_estate/elecstate_lcao.h"' source/source_lcao/edm.cpp && \
 # Default entry
+# Install dpgen2 from source and clean up pip cache
+RUN pip3 install --no-cache-dir git+https://github.com/deepmodeling/dpgen2.git && \
+    pip3 cache purge
+
 CMD ["/bin/bash"]

@@ -11,7 +11,8 @@ FROM ubuntu:22.04
 RUN apt update && apt install -y --no-install-recommends \
     libopenblas-openmp-dev liblapack-dev libscalapack-mpi-dev libelpa-dev libfftw3-dev libcereal-dev \
     libxc-dev libgtest-dev libgmock-dev libbenchmark-dev python3-numpy \
-    bc cmake git g++ make time sudo unzip vim wget gfortran
+    python3-pip bc cmake git g++ make time sudo unzip vim wget gfortran && \
+    rm -rf /var/lib/apt/lists/*
     # If you wish to use the LLVM compiler, replace 'g++' above with 'clang libomp-dev'.
 
 ENV GIT_SSL_NO_VERIFY=true TERM=xterm-256color \
@@ -39,3 +40,7 @@ RUN git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     cmake --install build && \
     rm -rf build
     #&& rm -rf abacus-develop
+
+# Install dpgen2 from source and clean up pip cache
+RUN pip3 install --no-cache-dir git+https://github.com/deepmodeling/dpgen2.git && \
+    pip3 cache purge

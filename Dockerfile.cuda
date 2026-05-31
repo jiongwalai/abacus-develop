@@ -3,7 +3,8 @@ FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
 RUN apt update && apt install -y --no-install-recommends \
     libopenblas-openmp-dev liblapack-dev libscalapack-mpi-dev libfftw3-dev libcereal-dev \
     libxc-dev libgtest-dev libgmock-dev libbenchmark-dev python3-numpy \
-    bc cmake git g++ make time sudo unzip vim wget libopenmpi-dev gfortran libtool-bin
+    python3-pip bc cmake git g++ make time sudo unzip vim wget libopenmpi-dev gfortran libtool-bin && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV GIT_SSL_NO_VERIFY=true TERM=xterm-256color \
     OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 \
@@ -34,3 +35,7 @@ RUN git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     rm -rf build && \
     cd .. 
     #&& rm -rf abacus-develop
+
+# Install dpgen2 from source and clean up pip cache
+RUN pip3 install --no-cache-dir git+https://github.com/deepmodeling/dpgen2.git && \
+    pip3 cache purge
