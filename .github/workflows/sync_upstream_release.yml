@@ -1,0 +1,47 @@
+name: Sync Upstream Release
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 0 点检查一次
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync upstream tags and create releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git remote add upstream https://github.com/deepmodeling/abacus-develop.git
+          git fetch upstream --tags
+
+          # 获取上游所有 tag
+          UPSTREAM_TAGS=$(git ls-remote --tags upstream | grep -o 'refs/tags/v[^^{}]*' | sed 's|refs/tags/||' | sort -u)
+
+          # 获取 origin 已有 tag
+          ORIGIN_TAGS=$(git ls-remote --tags origin | grep -o 'refs/tags/v[^^{}]*' | sed 's|refs/tags/||' | sort -u)
+
+          # 找到上游有但 origin 没有的 tag
+          NEW_TAGS=$(comm -23 <(echo "$UPSTREAM_TAGS") <(echo "$ORIGIN_TAGS"))
+
+          if [ -z "$NEW_TAGS" ]; then
+            echo "No new upstream tags to sync."
+            exit 0
+          fi
+
+          for tag in $NEW_TAGS; do
+            echo "Syncing tag: $tag"
+            git push origin "$tag"
+            echo "Creating release for $tag"
+            gh release create "$tag" --generate-notes --title "$tag" || echo "Release $tag may already exist"
+          done
